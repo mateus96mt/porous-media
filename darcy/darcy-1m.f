@@ -62,7 +62,7 @@ c      ierrb=17
 c      ierrbi=18
 
 c               LEITURA
-      open(unit=iin, file= 'darcy-1m - 40e.dat',status='old')
+      open(unit=iin, file= '80e_obstaculo2.dat',status='old')
       open(unit=iecho, file= 'darcy.eco')	
       open(unit=iout, file= 'errofem-le.con')      
       open(unit=ioupp, file= 'erro.local.proj.con')
@@ -1973,10 +1973,10 @@ c
 c------------------------fonte Darcy tracador---------------------------
 c
       if (nel.eq.1) then
-        fd = 200.0d00
+        fd = 200.0d00/h2
         
       else if (nel.eq.numel) then
-        fd = -200.0d00
+        fd = -200.0d00/h2
         
       else
         fd = 0.0d00
@@ -2641,10 +2641,10 @@ c
 c------------------------fonte Darcy tracador---------------------------
 c
       if (nel.eq.1) then
-        fd = 200.0d00
+        fd = 200.0d00/h2
         
       else if (nel.eq.numel) then
-        fd = -200.0d00
+        fd = -200.0d00/h2
         
       else
         fd = 0.0d00

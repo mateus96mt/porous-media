@@ -21,7 +21,7 @@ Darcy problem 1 multiplier-  Convergencia : Q1Q1-p1  - refinamento h : nface =4
          1         1         1         2        83        82         1
         80         1         1        80        80        81
       1641         2      1661      1662      1743      1742         1
-        27         1         1        27      1668        81 
+        27         1         1        27        80        81
         
          1         1        82       162        81         1
         80         1         1        80        80       161

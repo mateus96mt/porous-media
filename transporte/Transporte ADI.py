@@ -2,6 +2,10 @@ import numpy as np
 import aux_
 import os
 
+'''discretizacao para o termo convectivo'''
+#esquema = 'upwind'
+esquema = 'central'
+
 def passo1(c, nx, ny, domx, domy, vel, D11, D12, D21, D22, alpha_mol, alpha_l, alpha_t, phi, h, dt, p, q, t, Tinj):
     
     da = np.zeros(nx+1) #diagonal abaixo da principal
@@ -27,16 +31,24 @@ def passo1(c, nx, ny, domx, domy, vel, D11, D12, D21, D22, alpha_mol, alpha_l, a
             fd[i] = aux_.dxdy(i, j, c, h, q, D12, nx, ny) 
             fd[i] += aux_.dydx(i, j, c, h, q, D21, nx, ny) 
             fd[i] += aux_.dydy(i, j, c, h, q, D22, nx, ny) 
-            fd[i] -= aux_.upwy(i, j, c, vel, h, q, nx, ny)
             fd[i] += c[i,j,q]*(2*phi/dt)
             
-            if vel[i,j,0]>=0:
-                da[i] += -vel[i,j,0]/h 
-                db[i] += vel[i,j,0]/h
-            else:
-                dc[i] += vel[i,j,0]/h
-                db[i] += -vel[i,j,0]/h
-        
+            if esquema == 'upwind':
+                fd[i] -= aux_.upwy(i, j, c, vel, h, q, nx, ny)
+            if esquema == 'central':
+                fd[i] -= aux_.centy(i, j, c, vel, h, q, nx, ny)
+            
+            if esquema == 'upwind':
+                if vel[i,j,0]>=0:
+                    da[i] += -vel[i,j,0]/h 
+                    db[i] += vel[i,j,0]/h
+                else:
+                    dc[i] += vel[i,j,0]/h
+                    db[i] += -vel[i,j,0]/h
+            if esquema == 'central':
+                da[i] += -vel[i,j,0]/(2*h)
+                dc[i] += vel[i,j,0]/(2*h)
+                
             if i==0:
                 fd[i] += -da[i]*c[i,j,q]
             if i==nx:
@@ -77,15 +89,23 @@ def passo2(c, nx, ny, domx, domy, vel, D11, D12, D21, D22, alpha_mol, alpha_l, a
             fd[j] = aux_.dxdy(i, j, c, h, q, D12, nx, ny) 
             fd[j] += aux_.dydx(i, j, c, h, q, D21, nx, ny) 
             fd[j] += aux_.dxdx(i, j, c, h, q, D11, nx, ny) 
-            fd[j] -= aux_.upwx(i, j, c, vel, h, q, nx, ny)
             fd[j] += c[i,j,q]*(2*phi/dt)
             
-            if vel[i,j,1]>=0:
-                da[j] += -vel[i,j,1]/h 
-                db[j] += vel[i,j,1]/h
-            else:
-                dc[j] += vel[i,j,1]/h
-                db[j] += -vel[i,j,1]/h
+            if esquema == 'upwind':
+                fd[j] -= aux_.upwx(i, j, c, vel, h, q, nx, ny)
+            if esquema =='central':
+                fd[j] -= aux_.centx(i, j, c, vel, h, q, nx, ny)
+                
+            if esquema == 'upwind':
+                if vel[i,j,1]>=0:
+                    da[j] += -vel[i,j,1]/h 
+                    db[j] += vel[i,j,1]/h
+                else:
+                    dc[j] += vel[i,j,1]/h
+                    db[j] += -vel[i,j,1]/h
+            if esquema == 'central':
+                da[j] += -vel[i,j,1]/(2*h)
+                dc[j] += vel[i,j,1]/(2*h)
         
             if j==0:
                 fd[j] += -da[j]*c[i,j,q]
@@ -108,7 +128,7 @@ def ADI_transporte(c, nx, ny, nt, domx, domy, vel, D11, D12, D21, D22, alpha_mol
     
     p, q = 1, 0
     
-    aux_.gera_vtk("dados/t0.vtk", c, nx, ny, p)
+    aux_.gera_vtk("dados_" + str(esquema) + "/t0.vtk", c, nx, ny, p)
     
     for t in range(nt):
         
@@ -118,7 +138,7 @@ def ADI_transporte(c, nx, ny, nt, domx, domy, vel, D11, D12, D21, D22, alpha_mol
         p, q = q, p
         passo2(c, nx, ny, domx, domy, vel, D11, D12, D21, D22, alpha_mol, alpha_l, alpha_t, phi, h, dt, p, q, t, Tinj)
 
-        aux_.gera_vtk("dados/t" + str(t+1) + ".vtk", c, nx, ny, p)
+        aux_.gera_vtk("dados_" + str(esquema) + "/t" + str(t+1) + ".vtk", c, nx, ny, p)
         
 #        if t==100:
 #            aux_.geraSaidaConcentracao("concentracao.dat", c, nx, ny, p)
@@ -179,10 +199,10 @@ def main():
     
     
     """teste gerar mesmos resultados DCC190"""
-#    D11 = np.full((nx+1, ny+1), 1e-5)
-#    D22 = np.full((nx+1, ny+1), 1e-5)
-#    D12 = np.zeros((nx+1, ny+1))
-#    D21 = D12
+    D11 = np.full((nx+1, ny+1), 1e-5)
+    D22 = np.full((nx+1, ny+1), 1e-5)
+    D12 = np.zeros((nx+1, ny+1))
+    D21 = D12
 #    phi = 1.0
 #    aux_.geraVetores(domx[0], domx[1], domy[0], domy[1], vel)
 #    aux_.geraGradienteCor(domx[0], domx[1], domy[0], domy[1], vel)
@@ -195,7 +215,7 @@ def main():
     ADI_transporte(c, nx, ny, nt, domx, domy, vel, D11, D12, D21, D22, alpha_mol, alpha_l, alpha_t, phi, h, dt, Tinj)
 
 
-os.system("rm -r dados")
+os.system("rm -rf dados_" + str(esquema))
 main()
 
 
@@ -222,3 +242,6 @@ main()
 #print("vel(L,L) = [", vel[-1,-1,0], ",", vel[-1,-1,1])
 
 #print(vel[:20,:20,0])
+
+#aux_.vel_formatoADI("../darcy/vel.dat", 80, 80)
+    

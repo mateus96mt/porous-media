@@ -62,7 +62,7 @@ c      ierrb=17
 c      ierrbi=18
 
 c               LEITURA
-      open(unit=iin, file= '80e_obstaculo2.dat',status='old')
+      open(unit=iin, file= '80e_homogenio.dat',status='old')
       open(unit=iecho, file= 'darcy.eco')	
       open(unit=iout, file= 'errofem-le.con')      
       open(unit=ioupp, file= 'erro.local.proj.con')

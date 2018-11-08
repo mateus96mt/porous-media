@@ -199,6 +199,28 @@ def gera_vtk(nome, dado, nx, ny, idx):
     arqvtk.writelines(texto)
     arqvtk.close()
 
+def centx(i, j, c, vel, h, idx, nx, ny):
+    m0 = c[i, j, idx]
+    m1 = c[i, j, idx]
+    
+    if i>0:
+        m0 = c[i-1, j, idx]
+    if i<nx-1:
+        m1 = c[i+1, j, idx]
+    
+    return vel[i,j,0]*(m1 - m0)/(2*h)
+
+def centy(i, j, c, vel, h, idx, nx, ny):
+    m0 = c[i, j, idx]
+    m1 = c[i, j, idx]
+    
+    if j>0:
+        m0 = c[i, j-1, idx]
+    if j<ny-1:
+        m1 = c[i, j+1, idx]
+    
+    return vel[i,j,1]*(m1 - m0)/(2*h)
+
 def upwx(i, j, c, vel, h, idx, nx, ny):
     if vel[i,j,0]>=0:
         if i==0:
@@ -215,13 +237,13 @@ def upwy(i, j, c, vel, h, idx, nx, ny):
     if vel[i,j,1]>=0:
         if j==0:
             return 0
-        esq = c[i,j-1,idx]
-        return vel[i,j,1]*(c[i,j,idx] - esq)/h
+        baixo = c[i,j-1,idx]
+        return vel[i,j,1]*(c[i,j,idx] - baixo)/h
     else:
         if j==ny:
             return 0
-        di = c[i,j+1,idx]
-        return vel[i,j,1]*(di - c[i,j,idx])/h
+        cima = c[i,j+1,idx]
+        return vel[i,j,1]*(cima - c[i,j,idx])/h
 
 def dxdx(i, j, c, h, idx, D, nx, ny):
     esq = c[i,j,idx]
